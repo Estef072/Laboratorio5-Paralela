@@ -31,7 +31,7 @@
 #include <mpi.h>
 
 /* Build a derived datatype for distributing the input data */
-void Build_mpi_type(double* a_p, double* b_p, int* n_p,
+void Build_mpi_type(double* b_p, int* n_p, double* a_p,
       MPI_Datatype* input_mpi_t_p);
 
 /* Get the input values */
@@ -59,6 +59,7 @@ int main(void) {
    /* Find out how many processes are being used */
    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
+   // Obtener la entrada del usuario
    Get_input(my_rank, comm_sz, &a, &b, &n);
 
    h = (b-a)/n;          /* h is the same for all processes */
@@ -98,30 +99,32 @@ int main(void) {
  * Output args:  input_mpi_t_p:  the new MPI datatype
  */
 void Build_mpi_type(
-      double*        a_p            /* in  */, 
-      double*        b_p            /* in  */, 
-      int*           n_p            /* in  */,
-      MPI_Datatype*  input_mpi_t_p  /* out */) {
+    double*        b_p            /* in  */, 
+    int*           n_p            /* in  */,
+    double*        a_p            /* in  */,
+    MPI_Datatype*  input_mpi_t_p  /* out */) {
 
-   int array_of_blocklengths[3] = {1, 1, 1};
-   MPI_Datatype array_of_types[3] = {MPI_DOUBLE, MPI_DOUBLE, MPI_INT};
-   MPI_Aint a_addr, b_addr, n_addr;
-   MPI_Aint array_of_displacements[3];
+    int array_of_blocklengths[3] = {1, 1, 1};
+    MPI_Datatype array_of_types[3] = {MPI_DOUBLE, MPI_INT, MPI_DOUBLE};  // Cambio el orden de los tipos de datos
+    MPI_Aint b_addr, n_addr, a_addr;
+    MPI_Aint array_of_displacements[3];
 
-   MPI_Get_address(a_p, &a_addr);
-   MPI_Get_address(b_p, &b_addr);
-   MPI_Get_address(n_p, &n_addr);
+    MPI_Get_address(b_p, &b_addr);
+    MPI_Get_address(n_p, &n_addr);
+    MPI_Get_address(a_p, &a_addr);
 
-   array_of_displacements[0] = 0;
-   array_of_displacements[1] = b_addr - a_addr;
-   array_of_displacements[2] = n_addr - a_addr;
+    array_of_displacements[0] = b_addr - b_addr;  // No hay desplazamiento para b
+    array_of_displacements[1] = n_addr - b_addr;  // El desplazamiento de n respecto a b
+    array_of_displacements[2] = a_addr - b_addr;  // El desplazamiento de a respecto a b
 
-   MPI_Type_create_struct(3, array_of_blocklengths, 
-         array_of_displacements, array_of_types,
-         input_mpi_t_p);
+    MPI_Type_create_struct(3, array_of_blocklengths, 
+        array_of_displacements, array_of_types,
+        input_mpi_t_p);
    
-   MPI_Type_commit(input_mpi_t_p);
+    MPI_Type_commit(input_mpi_t_p);
 }
+
+
 
 
 /*------------------------------------------------------------------
@@ -142,17 +145,22 @@ void Get_input(
       int*     n_p      /* out */) {
    MPI_Datatype input_mpi_t;
 
-   Build_mpi_type(a_p, b_p, n_p, &input_mpi_t);
-
    if (my_rank == 0) {
       printf("Enter a, b, and n\n");
       scanf("%lf %lf %d", a_p, b_p, n_p);
    }
 
+   // Construir el tipo de dato MPI
+   Build_mpi_type(a_p, b_p, n_p, &input_mpi_t);
+
+   // Broadcast usando el tipo de dato MPI
    MPI_Bcast(a_p, 1, input_mpi_t, 0, MPI_COMM_WORLD);
 
+   // Liberar el tipo de dato MPI
    MPI_Type_free(&input_mpi_t);
 }
+
+
 
 
 /*------------------------------------------------------------------
