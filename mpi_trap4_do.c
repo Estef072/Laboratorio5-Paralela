@@ -149,16 +149,11 @@ void Get_input(
       scanf("%lf %lf %d", a_p, b_p, n_p);
    }
 
-   /*
-    * Ahora puede usar el tipo derivado de MPI para reemplazar
-    * varios mensajes por uno solo
-    */
-   MPI_Bcast(a_p, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-   MPI_Bcast(b_p, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-   MPI_Bcast(n_p, 1, MPI_INT, 0, MPI_COMM_WORLD);
+   MPI_Bcast(a_p, 1, input_mpi_t, 0, MPI_COMM_WORLD);
 
    MPI_Type_free(&input_mpi_t);
-}  /* Get_input */
+}
+
 
 /*------------------------------------------------------------------
  * Function:     Trap
