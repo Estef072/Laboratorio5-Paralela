@@ -13,7 +13,7 @@ mpicc -g -Wall -o mpi_trap4 mpi_trap4_do.c
 Ejecutar
 ```bash
 mpiexec -n <número de procesos> ./mpi_trap4
-Compilar
 
+Ejemplo
 ```bash
 mpiexec -n 4 ./mpi_trap4
