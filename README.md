@@ -3,6 +3,8 @@ Programación paralela y distribuida
 Autores:
 - Oscar Estrada 20565
 - Axel López 20768
+- Estefanía Elvira 20725
+- Priscilla González 20689
 
 ## Instrucciones de compilación y ejecución
 Compilar
